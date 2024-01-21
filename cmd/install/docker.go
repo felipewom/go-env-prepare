@@ -27,7 +27,7 @@ func (d *DockerInstaller) Install() {
 			case <-done:
 				return
 			default:
-				fmt.Printf("\r⌛ Installing Docker %s \n", loadingAnimation())
+				fmt.Printf("\r⌛ Installing Docker %s", loadingAnimation())
 				time.Sleep(300 * time.Millisecond)
 			}
 		}
