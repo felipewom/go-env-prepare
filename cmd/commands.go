@@ -117,10 +117,7 @@ func newLintCmd() *cobra.Command {
 		Use:   "lint",
 		Short: "Validate manifest syntax and semantic constraints",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if flags.ManifestPath == "" {
-				flags.ManifestPath = "prepare.yaml"
-			}
-			manifest, err := dynamic.LoadManifest(flags.ManifestPath)
+			manifest, err := loadManifestForFlags(flags)
 			if err != nil {
 				return err
 			}
@@ -178,17 +175,9 @@ func bindDynamicFlags(cmd *cobra.Command, flags *dynamicFlags) {
 }
 
 func buildPlan(flags *dynamicFlags) (dynamic.Plan, dynamic.Manifest, error) {
-	manifest := dynamic.Manifest{APIVersion: "v1", Profiles: map[string]dynamic.Profile{}}
-	if flags.ManifestPath != "" {
-		path, err := dynamic.DiscoverManifestPath(flags.ManifestPath)
-		if err == nil {
-			manifest, err = dynamic.LoadManifest(path)
-			if err != nil {
-				return dynamic.Plan{}, dynamic.Manifest{}, err
-			}
-		} else if !errors.Is(err, os.ErrNotExist) {
-			return dynamic.Plan{}, dynamic.Manifest{}, err
-		}
+	manifest, err := loadManifestForFlags(flags)
+	if err != nil {
+		return dynamic.Plan{}, dynamic.Manifest{}, err
 	}
 
 	catalog := dynamic.BuiltinCatalog()
@@ -205,6 +194,23 @@ func buildPlan(flags *dynamicFlags) (dynamic.Plan, dynamic.Manifest, error) {
 		return dynamic.Plan{}, dynamic.Manifest{}, err
 	}
 	return plan, manifest, nil
+}
+
+func loadManifestForFlags(flags *dynamicFlags) (dynamic.Manifest, error) {
+	manifest := dynamic.Manifest{APIVersion: "v1", Profiles: map[string]dynamic.Profile{}}
+	path, err := dynamic.DiscoverManifestPath(flags.ManifestPath)
+	if errors.Is(err, os.ErrNotExist) {
+		return manifest, nil
+	}
+	if err != nil {
+		return dynamic.Manifest{}, err
+	}
+
+	manifest, err = dynamic.LoadManifest(path)
+	if err != nil {
+		return dynamic.Manifest{}, err
+	}
+	return manifest, nil
 }
 
 func writeJSONFile(path string, v any) error {
