@@ -47,11 +47,18 @@ jobs:
             prepare-linux-arm64
             checksums.txt
 
+      # Formula update is opt-in because the current formula.rb uses a source
+      # tarball install path that does not yet work correctly for end users.
+      # Enable only after the install block in formula.rb has been validated.
+      # To enable: set repository variable ENABLE_FORMULA_UPDATE to 'true'.
+      # See docs/release.md for guidance.
       - name: Update Homebrew formula
+        if: vars.ENABLE_FORMULA_UPDATE == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          set -euo pipefail
+
           TARBALL_URL="https://github.com/${{ github.repository }}/archive/refs/tags/${GITHUB_REF_NAME}.tar.gz"
 
           # Download tarball and compute sha256
@@ -63,5 +70,11 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add formula.rb
-          git commit -m "chore(release): update formula to ${GITHUB_REF_NAME}" || echo "No changes to commit"
-          git push origin HEAD:main || echo "Push skipped (no changes)"
+
+          # Only push if there are actual changes; fail hard if push fails.
+          if git diff --cached --quiet; then
+            echo "No changes to formula.rb — skipping commit."
+          else
+            git commit -m "chore(release): update formula to ${GITHUB_REF_NAME}"
+            git push origin HEAD:main
+          fi
