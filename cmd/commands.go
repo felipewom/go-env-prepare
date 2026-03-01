@@ -246,7 +246,10 @@ func startPrompt() {
 		},
 		Default: install.GetAlreadyInstalledTools(),
 	}
-	survey.AskOne(prompt, &selectedOptions)
+	if err := survey.AskOne(prompt, &selectedOptions); err != nil {
+		fmt.Printf("prompt error: %v\n", err)
+		return
+	}
 	for _, option := range selectedOptions {
 		installer := install.GetInstallerByTitle(option)
 		if installer != nil {
@@ -259,7 +262,10 @@ func startPrompt() {
 		Message: "Do you want to restart?",
 		Default: false,
 	}
-	survey.AskOne(promptRestart, &shouldRestart)
+	if err := survey.AskOne(promptRestart, &shouldRestart); err != nil {
+		fmt.Printf("prompt error: %v\n", err)
+		return
+	}
 	if shouldRestart {
 		startPrompt()
 		return

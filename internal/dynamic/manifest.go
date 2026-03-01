@@ -85,7 +85,9 @@ func parseYAMLManifest(content string) (Manifest, error) {
 			m.Tools = append(m.Tools, strings.TrimSpace(strings.TrimPrefix(trimmed, "- ")))
 		case section == "profiles" && indent == 2 && strings.HasSuffix(trimmed, ":"):
 			inProfile = strings.TrimSuffix(trimmed, ":")
-			m.Profiles[inProfile] = m.Profiles[inProfile]
+			if _, exists := m.Profiles[inProfile]; !exists {
+				m.Profiles[inProfile] = Profile{}
+			}
 			profileField = ""
 		case section == "profiles" && inProfile != "" && indent == 4 && strings.HasPrefix(trimmed, "tools:"):
 			profileField = "tools"
