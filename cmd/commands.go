@@ -56,7 +56,7 @@ func startPrompt() {
 	for _, option := range selectedOptions {
 		installer := install.GetInstallerByTitle(option)
 		if installer != nil {
-			installer.Install()
+			install.RunInstaller(installer)
 		}
 	}
 	install.FinishAllInstallations()

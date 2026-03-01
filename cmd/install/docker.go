@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"time"
 )
 
@@ -33,8 +32,8 @@ func (d *DockerInstaller) Install() {
 		}
 	}()
 
-	// Install Docker using Homebrew
-	cmd := exec.Command("brew", "install", "docker")
+	// Install Docker Desktop using Homebrew cask
+	cmd := exec.Command("brew", "install", "--cask", "docker")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -50,7 +49,7 @@ func (d *DockerInstaller) Install() {
 
 	fmt.Printf("\r✅ Docker installed successfully.\n")
 
-	// Perform post-installation configurations
+	// Perform post-installation guidance
 	d.configureDocker()
 }
 
@@ -59,8 +58,9 @@ func (d *DockerInstaller) Title() string {
 }
 
 func (d *DockerInstaller) IsAlreadyInstalled() bool {
-	_, err := exec.LookPath("docker")
-	return err == nil
+	_, appErr := os.Stat("/Applications/Docker.app")
+	_, cliErr := exec.LookPath("docker")
+	return appErr == nil || cliErr == nil
 }
 
 func (d *DockerInstaller) Description() string {
@@ -72,26 +72,5 @@ func (d *DockerInstaller) Description() string {
 }
 
 func (d *DockerInstaller) configureDocker() {
-	fmt.Println("Performing post-installation configurations for Docker...")
-
-	// Get the user's username
-	currentUser, err := user.Current()
-	if err != nil {
-		fmt.Printf("\r❌ Error getting user information: %v\n", err)
-		return
-	}
-
-	// Add the user to the 'docker' group using dscl
-	cmd := exec.Command("dscl", ".", "-append", "/Groups/docker", "GroupMembership", currentUser.Username)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err = cmd.Run()
-
-	if err != nil {
-		fmt.Printf("\r❌ Error configuring Docker: %v\n", err)
-		return
-	}
-
-	fmt.Printf("\r✅ Docker configured successfully. Please restart your shell.\n")
+	fmt.Println("Docker Desktop installed. Open Docker.app once to finish initialization.")
 }

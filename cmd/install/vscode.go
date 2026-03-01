@@ -32,7 +32,7 @@ func (v *VscodeInstaller) Install() {
 	}()
 
 	// Install Visual Studio Code using Homebrew
-	cmd := exec.Command("brew", "install", "visual-studio-code")
+	cmd := exec.Command("brew", "install", "--cask", "visual-studio-code")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
