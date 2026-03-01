@@ -37,7 +37,7 @@ func (i *Iterm2Installer) Install() {
 	}()
 
 	// Install iTerm2 using Homebrew
-	cmd := exec.Command("brew", "install", "iterm2")
+	cmd := exec.Command("brew", "install", "--cask", "iterm2")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
